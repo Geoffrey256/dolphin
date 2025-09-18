@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Dolphin Business Enterprise{% endblock %}
+
+{% block content %}
+
+<!-- Flash Sale Banner -->
+<div class="alert alert-warning text-center fw-bold" role="alert">
+    ⚡ FLASH SALE: Get up to 30% off selected items today only! ⚡
+</div>
+
+<!-- Search Bar -->
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <form class="d-flex" method="get" action="#">
+            <input class="form-control me-2" type="search" placeholder="Search products..." aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- Aquarium Products -->
+<h3 class="mb-3">Aquarium Products</h3>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 mb-5">
+    {% for product in aquarium_products %}
+    <div class="col">
+        <div class="card h-100 custom-card">
+            <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text fw-bold">UGX {{ product.price }}</p>
+                <a href="{% url 'product_detail' product.id %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Gas Products -->
+<h3 class="mb-3">Gas Products</h3>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 mb-5">
+    {% for product in gas_products %}
+    <div class="col">
+        <div class="card h-100 custom-card">
+            <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text fw-bold">UGX {{ product.price }}</p>
+                <a href="{% url 'product_detail' product.id %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Supplements -->
+<h3 class="mb-3">Supplements</h3>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+    {% for product in supplements %}
+    <div class="col">
+        <div class="card h-100 custom-card">
+            <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text fw-bold">UGX {{ product.price }}</p>
+                <a href="{% url 'product_detail' product.id %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
