@@ -12,12 +12,20 @@
 <!-- Search Bar -->
 <div class="row mb-4">
     <div class="col-md-8 mx-auto">
-        <form class="d-flex" method="get" action="#">
-            <input class="form-control me-2" type="search" placeholder="Search products..." aria-label="Search">
+        <form class="d-flex" method="get" action="{% url 'home' %}">
+            <input
+                class="form-control me-2"
+                type="search"
+                name="q"
+                value="{{ request.GET.q }}"
+                placeholder="Search products..."
+                aria-label="Search"
+            >
             <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
     </div>
 </div>
+
 
 <!-- Aquarium Products -->
 <h3 class="mb-3">Aquarium Products</h3>
@@ -59,10 +67,10 @@
     {% for product in supplements %}
     <div class="col">
         <div class="card h-100 custom-card">
-            <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
             <div class="card-body">
                 <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text fw-bold">UGX {{ product.price }}</p>
+                <p class="card-text fw-bold">UGX {{ product.price|floatformat:0 }}</p>
                 <a href="{% url 'product_detail' product.id %}" class="stretched-link"></a>
             </div>
         </div>

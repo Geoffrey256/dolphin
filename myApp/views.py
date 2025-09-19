@@ -1,15 +1,48 @@
-from django.shortcuts import render
+from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
 from decimal import Decimal
 from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
 from .models import Product
 
+# ----------------------
+# Constants
+# ----------------------
 CART_SESSION_KEY = "cart"
 WISHLIST_SESSION_KEY = "wishlist"
 
 
+# ----------------------
+# Home Page
+# ----------------------
+# def home(request):
+#     aquarium_products = [
+#         {"id": 1, "name": "Goldfish Bowl", "price": "45,000",
+#             "image": "https://via.placeholder.com/200"},
+#         {"id": 2, "name": "Aquarium Filter", "price": "120,000",
+#             "image": "https://via.placeholder.com/200"},
+#     ]
+#     gas_products = [
+#         {"id": 3, "name": "6kg Gas Cylinder", "price": "150,000",
+#             "image": "https://via.placeholder.com/200"},
+#         {"id": 4, "name": "Gas Stove", "price": "250,000",
+#             "image": "https://via.placeholder.com/200"},
+#     ]
+#     supplements = Product.objects.filter(
+#         category=Product.CATEGORY_SUPPLEMENT)[:4]
+
+#     return render(request, "home.html", {
+#         "aquarium_products": aquarium_products,
+#         "gas_products": gas_products,
+#         "supplements": supplements,
+#     })
+
+
 def home(request):
+    query = request.GET.get("q")
+
+    # Default: hardcoded items for aquarium and gas
     aquarium_products = [
         {"id": 1, "name": "Goldfish Bowl", "price": "45,000",
             "image": "https://via.placeholder.com/200"},
@@ -22,12 +55,17 @@ def home(request):
         {"id": 4, "name": "Gas Stove", "price": "250,000",
             "image": "https://via.placeholder.com/200"},
     ]
-    supplements = [
-        {"id": 5, "name": "Vitamin C Tablets", "price": "30,000",
-            "image": "https://via.placeholder.com/200"},
-        {"id": 6, "name": "Protein Powder", "price": "220,000",
-            "image": "https://via.placeholder.com/200"},
-    ]
+
+    # If searching, override default products
+    if query:
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+        return render(request, "search_results.html", {"products": products, "query": query})
+
+    # Normal home view
+    supplements = Product.objects.filter(
+        category=Product.CATEGORY_SUPPLEMENT).order_by('-created_at')[:4]
 
     return render(request, "home.html", {
         "aquarium_products": aquarium_products,
@@ -86,12 +124,11 @@ def cart_items_and_total(cart):
 
 
 # ----------------------
-# Views
+# Product Pages
 # ----------------------
 def supplements_list(request):
     supplements = Product.objects.filter(category=Product.CATEGORY_SUPPLEMENT)
-    context = {"supplements": supplements}
-    return render(request, "supplements.html", context)
+    return render(request, "supplements.html", {"supplements": supplements})
 
 
 def product_detail(request, slug):
@@ -99,6 +136,9 @@ def product_detail(request, slug):
     return render(request, "product_detail.html", {"product": product})
 
 
+# ----------------------
+# Cart Views
+# ----------------------
 def add_to_cart(request, slug):
     product = get_object_or_404(Product, slug=slug)
     qty = int(request.POST.get("quantity", 1)
@@ -110,7 +150,6 @@ def add_to_cart(request, slug):
         messages.error(request, "Sorry, this product is out of stock.")
         return redirect(product.get_absolute_url())
 
-    # Cap quantity to available stock
     if qty > product.stock:
         messages.warning(
             request, f"Only {product.stock} item(s) available; quantity adjusted.")
@@ -139,9 +178,6 @@ def cart_view(request):
 
 
 def update_cart(request):
-    """
-    Accepts POST with 'product_id' and 'quantity' to update a single item.
-    """
     if request.method != "POST":
         return redirect("cart")
     cart = _get_cart(request)
@@ -167,6 +203,9 @@ def update_cart(request):
     return redirect("cart")
 
 
+# ----------------------
+# Wishlist Views
+# ----------------------
 def add_to_wishlist(request, slug):
     product = get_object_or_404(Product, slug=slug)
     wishlist = _get_wishlist(request)
@@ -179,6 +218,13 @@ def add_to_wishlist(request, slug):
         messages.success(request, f"{product.name} added to your wishlist.")
     return redirect("wishlist")
 
+
+# def wishlist_view(request):
+#     wishlist = _get_wishlist(request)
+#     product_ids = [int(i) for i in wishlist]
+#     products = Product.objects.filter(id__in=product_ids)
+#     ordered = sorted(products, key=lambda p: wishlist.index(str(p.id)))
+#     return render(request, "wishlist.html", {"products": ordered})
 
 def wishlist_view(request):
     wishlist = _get_wishlist(request)
@@ -199,19 +245,16 @@ def remove_from_wishlist(request, slug):
     return redirect("wishlist")
 
 
+# ----------------------
+# Checkout & Order
+# ----------------------
 def checkout(request):
     cart = _get_cart(request)
     items, total = cart_items_and_total(cart)
     return render(request, "checkout.html", {"items": items, "total": total})
 
 
-# Optional minimal Order/OrderItem models (below) — if included, place them in models.py.
-# For now we'll implement a simple "place_order" that reduces stock and clears cart.
 def place_order(request):
-    """
-    Simple processing: check stock, reduce stock, create a minimal order snapshot (optional), clear cart.
-    This is the point we stop before payments.
-    """
     cart = _get_cart(request)
     if not cart:
         messages.warning(request, "Your cart is empty.")
@@ -219,23 +262,18 @@ def place_order(request):
 
     items, total = cart_items_and_total(cart)
 
-    # Check stocks
     for it in items:
         if it["quantity"] > it["product"].stock:
             messages.error(
                 request, f"Not enough stock for {it['product'].name}.")
             return redirect("cart")
 
-    # All good: reduce stock and "create" order snapshot (simple)
     with transaction.atomic():
-        # Reduce stock
         for it in items:
             p = it["product"]
             p.stock = p.stock - it["quantity"]
             p.save()
 
-        # Here you would create Order / OrderItem records
-        # For the demo we will just create a small session snapshot
         order_snapshot = {
             "items": [
                 {"product_id": it["product"].id, "name": it["product"].name,
@@ -246,13 +284,10 @@ def place_order(request):
             "total": str(total)
         }
         request.session["last_order"] = order_snapshot
-
-        # Clear cart
         request.session[CART_SESSION_KEY] = {}
         request.session.modified = True
 
-    messages.success(
-        request, "Order placed successfully (demo). We reduced stocks and cleared your cart.")
+    messages.success(request, "Order placed successfully (demo).")
     return redirect("order_success")
 
 
@@ -261,11 +296,9 @@ def order_success(request):
     return render(request, "order_success.html", {"order": order})
 
 
-def product_detail(request, product_id):
-    # For now, just a placeholder
-    return render(request, "product_detail.html", {"product_id": product_id})
-
-
+# ----------------------
+# Static Pages
+# ----------------------
 def about(request):
     return render(request, "about.html")
 
@@ -284,7 +317,3 @@ def aquarium(request):
 
 def gas(request):
     return render(request, "gas.html")
-
-
-def supplements(request):
-    return render(request, "supplements.html")
