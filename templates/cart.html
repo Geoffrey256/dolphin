@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<h2>Your Cart</h2>
+
+{% if items %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th class="text-center">Qty</th>
+      <th class="text-end">Unit</th>
+      <th class="text-end">Subtotal</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in items %}
+    <tr>
+      <td>
+        <a href="{{ it.product.get_absolute_url }}">{{ it.product.name }}</a>
+      </td>
+      <td class="text-center">
+        <form action="{% url 'update_cart' %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ it.product.id }}">
+          <input type="number" name="quantity" value="{{ it.quantity }}" min="0" max="{{ it.product.stock }}" style="width:72px;">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">Update</button>
+        </form>
+      </td>
+      <td class="text-end">UGX {{ it.unit_price }}</td>
+      <td class="text-end">UGX {{ it.subtotal }}</td>
+      <td class="text-end">
+        <!-- Optionally add remove button -->
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" class="text-end"><strong>Total</strong></td>
+      <td class="text-end"><strong>UGX {{ total }}</strong></td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="d-flex justify-content-between">
+  <a href="{% url 'supplements' %}" class="btn btn-outline-primary">Continue shopping</a>
+  <a href="{% url 'checkout' %}" class="btn btn-success">Proceed to checkout</a>
+</div>
+{% else %}
+  <p>Your cart is empty.</p>
+  <a class="btn btn-primary" href="{% url 'supplements' %}">Shop supplements</a>
+{% endif %}
+{% endblock %}

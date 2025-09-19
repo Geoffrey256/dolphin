@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Order placed{% endblock %}
+
+{% block content %}
+<h2>Order placed</h2>
+<p>Thank you — your order was placed. (Demo)</p>
+
+{% if order %}
+  <h4>Order summary</h4>
+  <ul class="list-group mb-3">
+    {% for i in order.items %}
+      <li class="list-group-item d-flex justify-content-between">
+        <div>{{ i.quantity }} x {{ i.name }}</div>
+        <div>UGX {{ i.subtotal }}</div>
+      </li>
+    {% endfor %}
+    <li class="list-group-item d-flex justify-content-between">
+      <strong>Total</strong>
+      <strong>UGX {{ order.total }}</strong>
+    </li>
+  </ul>
+{% endif %}
+
+<a href="{% url 'supplements' %}" class="btn btn-primary">Continue shopping</a>
+{% endblock %}
