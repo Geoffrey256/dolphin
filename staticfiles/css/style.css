@@ -1,0 +1,71 @@
+/* ============================
+   Navbar Styling
+   ============================ */
+.custom-navbar {
+    background-color: #198754; /* Primary green */
+}
+
+.custom-navbar .navbar-brand {
+    color: #ffffff !important; /* White text */
+}
+
+.custom-navbar .nav-link {
+    color: #d4edda !important; /* Light green text */
+    transition: color 0.3s ease;
+}
+
+.custom-navbar .nav-link:hover {
+    color: #ffffff !important; /* White on hover */
+}
+
+.custom-navbar .nav-link.active {
+    font-weight: bold;
+    color: #ffc107 !important; /* Yellow for active page */
+    border-bottom: 2px solid #ffc107; /* Highlight active link */
+}
+
+/* ============================
+   Footer Styling
+   ============================ */
+.custom-footer {
+    background-color: #198754; /* Primary green */
+    color: #ffffff;
+    padding: 15px 0;
+}
+
+.custom-footer p {
+    margin: 0;
+    color: #ffffff;
+}
+
+/* ============================
+   Card Styling
+   ============================ */
+.custom-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.custom-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+}
+
+/* ============================
+   Flash Sale Banner
+   ============================ */
+.alert-warning {
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ============================
+   Form & Search Styling
+   ============================ */
+.form-control {
+    border-radius: 0.25rem;
+}
+
+.btn-outline-success {
+    border-radius: 0.25rem;
+}

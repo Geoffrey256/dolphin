@@ -10,7 +10,7 @@ urlpatterns = [
     path("aquarium/", views.aquarium, name="aquarium"),
     path("gas/", views.gas, name="gas"),
 
-    path("supplements/", views.supplements, name="supplements"),
+    path("supplements/", views.supplements_list, name="supplements"),
     path("product/<slug:slug>/", views.product_detail, name="product_detail"),
     # cart & wishlist
     path("cart/", views.cart_view, name="cart"),
